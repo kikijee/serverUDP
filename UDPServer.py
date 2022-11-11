@@ -13,19 +13,26 @@ class UDP:
         self.HTTP_INCLUDED_OBJECT = 0
 
 
+
 serverPort = 18111
 serverSocket = socket(AF_INET, SOCK_DGRAM)
 serverSocket.bind(('', serverPort))
-print ('The server is ready to receive')
-while 1:
-    transactionE, clientAddress = serverSocket.recvfrom(2048)
-    #modifiedMessage = message.decode().upper()
-    #serverSocket.sendto(modifiedMessage.encode(), clientAddress)
-    data_variable = pickle.loads(transactionE)
-    print(data_variable.UDP_SYN_FLAG)
-    '''
-    message = input('message: ')
-    serverSocket.sendto(message.encode(),clientAddress)
-    modifiedMessage, serverAddress = serverSocket.recvfrom(2048)
-    print (modifiedMessage.decode())
-    '''
+
+def send_ack(address):
+    serverDatagram = UDP()
+    serverDatagram.UDP_ACK_FLAG = 1
+    data_string = pickle.dumps(serverDatagram)
+    serverSocket.sendto(data_string,address) # sends udpclient class
+
+if __name__ == 'main':
+
+    print ('The server is ready to receive')
+    while 1:
+        
+        dataGramE, clientAddress = serverSocket.recvfrom(2048)
+        dataGram = pickle.loads(dataGramE)
+        
+        if(dataGram.PAYLOAD_LENGTH and dataGram.UDP_SYN_FLAG == 1):
+            send_ack(clientAddress)
+
+
