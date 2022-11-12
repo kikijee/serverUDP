@@ -28,6 +28,8 @@ def send_syn_ack(address):
 
 def send_html(address, dataObj, ver = 0):
     arr = []
+    if dataObj.HTTP_REQUEST_PATH.find("\\"):
+        dataObj.HTTP_REQUEST_PATH = dataObj.HTTP_REQUEST_PATH[dataObj.HTTP_REQUEST_PATH.find("\\")+1:]
     print(dataObj.HTTP_REQUEST_PATH)
     for root, dirs, files in os.walk(r'\Users\cam00\Desktop\python\serverUDP\attachments'): # must change when running on different system, path varies
         if dataObj.HTTP_REQUEST_PATH in files:
