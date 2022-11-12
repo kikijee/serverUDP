@@ -19,21 +19,36 @@ serverPort = 18111
 serverSocket = socket(AF_INET, SOCK_DGRAM)
 serverSocket.bind(('', serverPort))
 
-def send_ack(address):
+def send_syn_ack(address):
     serverDatagram = UDP()
     serverDatagram.UDP_ACK_FLAG = 1
     serverDatagram.UDP_SYN_FLAG = 1
     data_string = pickle.dumps(serverDatagram)
     serverSocket.sendto(data_string,address) # sends udpclient class
 
-def send_html(address,arr = []): 
+def send_html(address, dataObj):
+    arr = []
+    print(dataObj.HTTP_REQUEST_PATH)
+    for root, dirs, files in os.walk(r'\Users\cam00\Desktop\python\serverUDP\attachments'):
+        if dataObj.HTTP_REQUEST_PATH in files:
+            with open(os.path.join(root,dataObj.HTTP_REQUEST_PATH)) as text:
+                arr = text.readlines() 
     serverDatagram = UDP()
     if not arr: serverDatagram.HTTP_RESPONSE_STATUS_CODE = 404
     else:
+        serverDatagram.HTTP_RESPONSE_STATUS_CODE = 202
         serverDatagram.TEXT = arr[0]
-        if arr[1]: serverDatagram.HTTP_INCLUDED_OBJECT = arr[1]
+        if len(arr) == 2: serverDatagram.HTTP_INCLUDED_OBJECT = arr[1]
     data_string = pickle.dumps(serverDatagram)
     serverSocket.sendto(data_string,address) # sends udpclient class
+
+def send_FIN_ACK(address):
+    serverDatagram = UDP()
+    serverDatagram.UDP_ACK_FLAG = 1
+    serverDatagram.UDP_FIN_FLAG = 1
+    data_string = pickle.dumps(serverDatagram)
+    serverSocket.sendto(data_string,address) # sends udpclient class
+
 
 
 if __name__ == '__main__':
@@ -46,15 +61,22 @@ if __name__ == '__main__':
         
         if(dataGram.PAYLOAD_LENGTH and dataGram.UDP_SYN_FLAG == 1):
             print("recieved SYN")
-            send_ack(clientAddress)
-            print("send ACK")
+            send_syn_ack(clientAddress)
+            print("sent SYN & ACK")
+
+        elif(dataGram.UDP_ACK_FLAG == 1):
+            print("recieved ACK")
 
         elif(dataGram.HTTP_GET_REQUEST == 1):
-            for root, dirs, files in os.walk(r'\Users\cam00\Desktop\py\serverUDP\attachments'):
-                if dataGram.HTTP_REQUEST_PATH in files:
-                    with open(os.path.join(root,dataGram.HTTP_REQUEST_PATH)) as text:
-                        text.readlines()
-                        
+            print("recieved HTTP REQ")
+            send_html(clientAddress,dataGram)
+            print("sent HTTP RES")
+
+        elif(dataGram.UDP_FIN_FLAG == 1):
+            print("recieved FIN")
+            send_FIN_ACK(clientAddress)
+            print("sent FIN & ACK")
+            
 
 
 
