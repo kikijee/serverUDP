@@ -26,7 +26,7 @@ def send_syn_ack(address):
     data_string = pickle.dumps(serverDatagram)
     serverSocket.sendto(data_string,address) # sends udpclient class
 
-def send_html(address, dataObj):
+def send_html(address, dataObj, ver = 0):
     arr = []
     print(dataObj.HTTP_REQUEST_PATH)
     for root, dirs, files in os.walk(r'\Users\cam00\Desktop\python\serverUDP\attachments'): # must change when running on different system, path varies
@@ -38,6 +38,7 @@ def send_html(address, dataObj):
     else:
         serverDatagram.HTTP_RESPONSE_STATUS_CODE = 202
         serverDatagram.TEXT = arr[0]
+        serverDatagram.HTTP_CLIENT_VERSION = ver
         if len(arr) == 2: serverDatagram.HTTP_INCLUDED_OBJECT = arr[1]
     data_string = pickle.dumps(serverDatagram)
     serverSocket.sendto(data_string,address) # sends udpclient class
@@ -69,7 +70,7 @@ if __name__ == '__main__':
 
         elif(dataGram.HTTP_GET_REQUEST == 1):
             print("recieved HTTP REQ")
-            send_html(clientAddress,dataGram)
+            send_html(clientAddress,dataGram,dataGram.HTTP_CLIENT_VERSION)
             print("sent HTTP RES")
 
         elif(dataGram.UDP_FIN_FLAG == 1):
